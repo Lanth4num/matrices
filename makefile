@@ -14,7 +14,7 @@ TEST_OBJ := $(TEST_SRC:test/%.c=build/test/%.o)
 TEST_OBJ += $(filter-out src/main.c, $(SRC))
 
 bin/out: $(OBJ)
-	@ $(CC) $(CFLAGS) $^ -o $@ 
+	@ $(CC) $(CFLAGS) $^ -lgmp -o $@ 
 
 build/%.o : src/%.c
 	@ $(CC) -c $(CFLAGS) $< -o $@
@@ -27,12 +27,12 @@ run:
 
 .PHONY: test
 test: $(TEST_OBJ)
-	@ $(CC) $(CFLAGS) $^ -o bin/test
+	@ $(CC) $(CFLAGS) $^ -lgmp -o bin/test
 	@ ./bin/test
 
 .PHONY: test-mem
 test-mem: $(TEST_OBJ)
-	@ $(CC) $(CFLAGS) $^ -o bin/test
+	@ $(CC) $(CFLAGS) $^ -lgmp -o bin/test
 	@ valgrind --leak-check=full --track-origins=yes ./bin/test
 
 .PHONY: clear
