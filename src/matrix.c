@@ -63,6 +63,47 @@ static mpq_t* matrix_det_2(mpq_t** matrix){
 }
 
 
+static mpq_t* matrix_det_3(mpq_t** matrix){
+
+	mpq_t* det = malloc(sizeof(mpq_t));
+	mpq_init(*det);
+
+	for (size_t i=0; i<3; i++){
+		Matrix* temp = matrix_new(matrix_size(2, 2));
+
+		/* creating the sub 2-2 matrix */
+		mpq_t** mat = temp->matrix;
+		size_t j = 0;
+
+		if(j==i) j+=1;
+		mpq_set(mat[0][0], matrix[1][j]);
+		mpq_set(mat[1][0], matrix[2][j]);
+
+		j+=1;
+		if(j==i) j+=1;
+		mpq_set(mat[0][1], matrix[1][j]);
+		mpq_set(mat[1][1], matrix[2][j]);
+
+		/* Get the det of it */
+		mpq_t* temp_det = matrix_det_2(mat);
+
+		/* If i odd then negate it */
+		if (i%2 != 0) mpq_neg(*temp_det, *temp_det);
+
+		/* Adding it to the 3-3 det (with multiplication)*/
+		mpq_mul(*temp_det, *temp_det, matrix[0][i]);
+		mpq_add(*det, *det, *temp_det);
+
+		/* Free the stuff */
+		matrix_free(temp);
+		mpq_clear(*temp_det);
+		free(temp_det);
+	}
+
+	return det;
+}
+
+
 static Matrix* matrix_invert_2(Matrix* arg_matrix){
 
 	/* Get the determinant and check for 0 */
@@ -191,7 +232,12 @@ Matrix* matrix_rand(MatrixSize* size, int min, int max){
 mpq_t * matrix_det(Matrix* matrix){
 	if ( is_matrix_size(matrix, 2, 2) ){
 		return matrix_det_2(matrix->matrix);
-	}
+	} 
+	else if (is_matrix_size(matrix, 3, 3)){
+		return matrix_det_3(matrix->matrix);
+	}	
+
+	/* If not supported size */
 	return NULL;
 }
 
