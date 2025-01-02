@@ -45,6 +45,30 @@ static Matrix* matrix_cpy(Matrix* src){
 }
 
 
+static void matrix_mul_cst(Matrix* matrix, mpq_t operand){
+	for (size_t row=0; row<matrix->size->rows; row++) {
+		for (size_t col=0; col<matrix->size->cols; col++) {
+			mpq_mul((matrix->matrix)[row][col], matrix->matrix[row][col], operand);
+		}
+	}
+}
+
+
+static Matrix* matrix_transpose(Matrix* matrix){
+	/* Create new matrix with inverse size*/
+	Matrix* new_mat = matrix_new(matrix_size(matrix->size->cols, matrix->size->rows));
+
+	/* Copy the matrix, inversing the cols and rows */
+	for (size_t row=0; row<matrix->size->rows; row++) {
+		for (size_t col=0; col<matrix->size->cols; col++) {
+			mpq_set((new_mat->matrix)[col][row], (matrix->matrix)[row][col]);
+		}
+	}
+
+	return new_mat;
+}
+
+
 static mpq_t* matrix_det_2(mpq_t** matrix){
 	
 	mpq_t* det = malloc(sizeof(mpq_t));
@@ -143,6 +167,82 @@ static Matrix* matrix_invert_2(Matrix* arg_matrix){
 	free(det);
 
 	return res_matrix;
+}
+
+
+static Matrix* matrix_invert_3(Matrix* arg_matrix){
+
+	mpq_t** matrix = arg_matrix->matrix;
+	mpq_t* det = matrix_det_3(matrix);
+
+	/* Verify that it is inversible */
+	if ( mpq_sgn(*det) == 0 ){
+		mpq_clear(*det);
+		free(det);
+		return NULL;
+	}
+
+	Matrix* inverse_mat = matrix_new(matrix_size(3, 3));
+
+	for ( size_t row=0; row<3; row++){
+		for (size_t col=0; col<3; col++){
+			Matrix* temp = matrix_new(matrix_size(2, 2));
+
+			/* creating the sub 2-2 matrix */
+			mpq_t** mat = temp->matrix;
+
+			size_t i = 0; /* Used for row */
+			size_t j = 0; /* Used for col */
+
+			if(i==row) i+=1;
+			if(j==col) j+=1;
+			mpq_set(mat[0][0], matrix[i][j]);
+
+			i+=1;
+			if(i==row) i+=1;
+			mpq_set(mat[1][0], matrix[i][j]);
+
+			j+=1;
+			if(j==col) j+=1;
+
+			i=0;
+			if(i==row) i+=1;
+			mpq_set(mat[0][1], matrix[i][j]);
+
+			i+=1;
+			if(i==row) i+=1;
+			mpq_set(mat[1][1], matrix[i][j]);
+
+			/* Get the det of it */
+			mpq_t* temp_det = matrix_det_2(mat);
+
+			/* If i odd then negate it */
+			if (row%2 == 0){
+				if (col%2 != 0) mpq_neg(*temp_det, *temp_det);
+			} else {
+				if (col%2 == 0) mpq_neg(*temp_det, *temp_det); 
+			}
+
+			/* Put it in the inverse matrix */
+			mpq_set((inverse_mat->matrix)[row][col], *temp_det);
+
+			/* Free the stuff */
+			matrix_free(temp);
+			mpq_clear(*temp_det);
+			free(temp_det);
+		}
+	}
+
+	Matrix* transpose = matrix_transpose(inverse_mat);
+	/* Invert the determinant */
+	mpq_inv(*det, *det);
+	/* Multiply matrix by it */
+	matrix_mul_cst(transpose, *det);
+
+	matrix_free(inverse_mat);
+	mpq_clear(*det);
+	free(det);
+	return transpose;
 }
 
 
@@ -246,6 +346,8 @@ mpq_t * matrix_det(Matrix* matrix){
 Matrix * matrix_invert(Matrix* matrix){
 	if ( is_matrix_size(matrix, 2, 2) ){
 		return matrix_invert_2(matrix);
+	} else if ( is_matrix_size(matrix, 3, 3) ){
+		return matrix_invert_3(matrix);
 	}
 	return NULL;
 }
