@@ -1,39 +1,32 @@
 #include <assert.h>
 #include <stdio.h>
 #include <gmp.h>
+#include <time.h>
 #include <string.h>
 #include <stdlib.h>
 #include "../src/headers/matrix.h"
 
 int main(int argc, char *argv[]){
+	srand(time(NULL));
 
-	/* 3 3 matrix */
-	Matrix* mat = matrix_new(matrix_size(3, 3));
-	mpq_set_ui((mat->matrix)[0][0], 0, 1);
-	mpq_set_ui((mat->matrix)[0][1], 1, 1);
-	mpq_set_ui((mat->matrix)[0][2], 2, 1);
-	mpq_set_ui((mat->matrix)[1][0], 1, 1);
-	mpq_set_ui((mat->matrix)[1][1], 2, 1);
-	mpq_set_ui((mat->matrix)[1][2], 3, 1);
-	mpq_set_ui((mat->matrix)[2][0], 3, 1);
-	mpq_set_ui((mat->matrix)[2][1], 1, 1);
-	mpq_set_ui((mat->matrix)[2][2], 1, 1);
+	/* Initialization */
+	Matrix* mat1 = matrix_rand(matrix_size(2, 3), -3, 3);
+	assert(mat1 != NULL);
+	Matrix* mat2 = matrix_rand(matrix_size(3, 1), -3, 3);
+	assert(mat2 != NULL);
+	Matrix* mul = matrix_mul(mat1, mat2);
+	assert(mul != NULL);
 
-	matrix_print(mat);
+	/* Printing */
+	matrix_print(mat1);
+	printf("x\n");
+	matrix_print(mat2);
+	printf("=\n");
+	matrix_print(mul);
 
-	mpq_t* det = matrix_det(mat);
-	gmp_printf("\nDeterminant : %Qd\n", *det);
+	matrix_free(mat1);
+	matrix_free(mat2);
+	matrix_free(mul);
 
-	if (det != 0) {
-		Matrix* inverse = matrix_invert(mat);
-		printf("Matrice inverse :\n");
-		matrix_print(inverse);
-		matrix_free(inverse);
-	}
-
-	mpq_clear(*det);
-	free(det);
-	matrix_free(mat);
-	
 	return 0;
 }

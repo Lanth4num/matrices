@@ -10,4 +10,4 @@ gcc -c test/main.c -o build/main.o
 gcc ${FLAGS} build/matrix.o build/main.o -lgmp -o bin/test
 
 # Running
-valgrind --leak-check=full --track-origins=yes ./bin/test
+valgrind -s --leak-check=full --track-origins=yes ./bin/test

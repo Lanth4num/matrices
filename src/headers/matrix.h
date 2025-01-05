@@ -18,6 +18,7 @@ Matrix* matrix_rand(MatrixSize* size, int min, int max);
 
 mpq_t * matrix_det(Matrix *); 
 Matrix * matrix_invert(Matrix *); 
+Matrix* matrix_mul(Matrix*, Matrix*);
 
 void matrix_print(Matrix *);
 char* matrix_to_latex(Matrix *);

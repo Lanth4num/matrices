@@ -29,6 +29,41 @@ MatrixSize* matrix_size(size_t rows, size_t cols){
 	return size;
 } 
 
+/* Multiply two matrices, mallocates the result */
+Matrix* matrix_mul(Matrix* matrix1, Matrix* matrix2){
+	/* Check if we can multiply the two */
+	if (matrix1->size->cols != matrix2->size->rows) return NULL;
+
+	Matrix* new_matrix = matrix_new(matrix_size(matrix1->size->rows, matrix2->size->cols));
+	assert(new_matrix != NULL);
+
+	/* Loop through the rows */
+	for (size_t row=0; row<new_matrix->size->rows; row++) {
+		/* Loop through the cols */	
+		for (size_t col=0; col<new_matrix->size->cols; col++) {
+			mpq_t sum;
+			mpq_init(sum);
+
+			/* Loop through */
+			for (size_t k=0; k<matrix1->size->cols; k++) {
+				mpq_t mul;
+				mpq_init(mul);
+
+				mpq_mul(mul, (matrix1->matrix)[row][k], (matrix2->matrix)[k][col]);
+				mpq_add(sum, mul, sum);
+
+				mpq_clear(mul);
+			}
+
+			mpq_set((new_matrix->matrix)[row][col], sum);
+			mpq_clear(sum);
+		}
+	}
+
+	return new_matrix;
+}
+
+
 /* Returns a copy of the given matrix */
 static Matrix* matrix_cpy(Matrix* src){
 	
